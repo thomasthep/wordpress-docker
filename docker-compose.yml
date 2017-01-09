@@ -1,0 +1,73 @@
+version: '2.1'
+
+services:
+
+  database:
+    # name: mariadb
+    build:
+      dockerfile: ./Dockerfile
+      context: ./maria/
+    image: wp-mariadb
+    volumes:
+      - ./data-db:/var/lib/mysql
+    expose:
+      - "3306"
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+
+  php:
+    # name: phpfpm
+    build:
+      dockerfile: ./Dockerfile
+      context: ./php/
+    image: wp-phpfpm
+    depends_on:
+      - database
+    volumes:
+      - ./data-wp:/var/www
+    expose:
+      - "9000"
+    restart: always
+    environment:
+      - DB_HOST
+      - DB_USER
+      - DB_PASSWORD
+      - DB_NAME
+      - DB_ROOT_PASSWORD
+      - DB_TABLE_PREFIX
+      - WP_DEBUG
+      - WP_ALLOW_MULTISITE
+      - WP_AUTH_KEY
+      - WP_SECURE_AUTH_KEY
+      - WP_LOGGED_IN_KEY
+      - WP_NONCE_KEY
+      - WP_AUTH_SALT
+      - WP_SECURE_AUTH_SALT
+      - WP_LOGGED_IN_SALT
+      - WP_NONCE_SALT
+
+  web:
+    # name: nginx
+    build:
+      dockerfile: ./Dockerfile
+      context: ./nginx/
+    image: wp-nginx
+    depends_on:
+      - php
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "${WEB_PORT}:80"
+    volumes_from:
+      - php
+    restart: always
+
+# volumes:
+#   database:
+#     volume_driver: local
+#   content:
+#     volume_driver: local

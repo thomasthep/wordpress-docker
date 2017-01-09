@@ -1,0 +1,11 @@
+# JetBrains
+.idea/
+
+# Environment
+.env
+
+# Temp
+temp/
+
+# OS Mac
+.DS_Store
